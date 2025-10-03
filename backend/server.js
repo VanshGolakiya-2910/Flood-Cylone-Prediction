@@ -9,6 +9,7 @@ require('dotenv').config({ path: './.env' });
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const dataRoutes = require('./routes/dataRoutes');
+const alertRoutes = require('./routes/alertRoutes');
 
 // Import middleware
 const errorMiddleware = require('./middleware/errorMiddleware');
@@ -57,6 +58,7 @@ app.get('/api/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/alerts', alertRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

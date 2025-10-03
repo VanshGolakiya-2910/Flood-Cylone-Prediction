@@ -30,6 +30,71 @@ class EmailService {
     }
   }
 
+  async sendAlertToRecipients(recipients, subject, html) {
+    // Use BCC to hide recipient list; fall back to 'to' if single recipient
+    const hasMultiple = Array.isArray(recipients) && recipients.length > 1;
+    const toAddress = hasMultiple ? (process.env.SMTP_FROM || process.env.SMTP_USER) : recipients[0];
+    const mailOptions = {
+      from: `"${process.env.APP_NAME || 'Flood Cyclone Prediction'}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+      to: toAddress,
+      subject: subject || 'Disaster Alert Notification',
+      html
+    };
+
+    if (hasMultiple) {
+      mailOptions.bcc = recipients;
+    }
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Alert email sent to ${hasMultiple ? recipients.length + ' recipients (bcc)' : recipients[0]}`);
+    } catch (error) {
+      console.error('Error sending alert email:', error);
+      throw new Error('Failed to send alert emails');
+    }
+  }
+
+  getAlertTemplate({ title, message, location, ctaUrl }) {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title || 'Area Alert'}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #111827; background: #f9fafb; }
+          .container { max-width: 640px; margin: 0 auto; padding: 24px; }
+          .header { background: #1f2937; color: #fff; padding: 20px; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+          .header h1 { margin: 0; font-size: 20px; }
+          .badge { display: inline-block; background: #ef4444; color: #fff; padding: 4px 10px; border-radius: 999px; font-size: 12px; margin-top: 8px; }
+          .content { background: #ffffff; padding: 24px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border: 1px solid #e5e7eb; }
+          .location { color: #374151; font-weight: 600; margin: 0 0 12px; }
+          .message { color: #111827; margin: 12px 0 20px; white-space: pre-line; }
+          .button { display: inline-block; background: #2563eb; color: #fff; padding: 10px 18px; text-decoration: none; border-radius: 6px; }
+          .footer { text-align: center; color: #6b7280; font-size: 12px; margin-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${title || 'Disaster Alert'}</h1>
+            <span class="badge">Important</span>
+          </div>
+          <div class="content">
+            ${location ? `<p class="location">Location: ${location}</p>` : ''}
+            <div class="message">${message || 'Please stay alert and follow local authority guidance.'}</div>
+            ${ctaUrl ? `<a class="button" href="${ctaUrl}" target="_blank" rel="noopener noreferrer">View Details</a>` : ''}
+          </div>
+          <div class="footer">
+            <p>Sent by ${process.env.APP_NAME || 'Flood Cyclone Prediction System'}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
   getPasswordResetTemplate(resetURL, userName) {
     return `
       <!DOCTYPE html>
