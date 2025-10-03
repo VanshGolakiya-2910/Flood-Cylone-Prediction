@@ -194,7 +194,6 @@ ehthumbs.db
 Thumbs.db
 
 # MongoDB data
-data/
 
 # Backup files
 *.bak
