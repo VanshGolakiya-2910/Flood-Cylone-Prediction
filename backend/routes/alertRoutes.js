@@ -1,6 +1,6 @@
 const express = require('express');
 const AlertService = require('../services/alertService');
-
+const AlertController = require('../controllers/alertController');
 const router = express.Router();
 
 // POST /api/alerts/area
@@ -34,6 +34,7 @@ router.post('/area', async (req, res) => {
   }
 });
 
+router.get('/', AlertController.getAllAlerts);
 module.exports = router;
 
 

@@ -1,79 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import Map from '../components/map/Map'
-import Header from '../components/layout/Header'; 
-// Mock data for cyclone prediction
-const cycloneData = {
-  name: "Cyclone",
-  speed: "85 km/h",
-  latitude: "21.5°N",
-  longitude: "86.5°E",
-  intensity: "Severe Cyclonic Storm",
-  direction: "North-Northeast",
-  pressure: "982 hPa",
-  lastUpdated: "2 hours ago"
-};
-
-// Mock data for flood predictions
-const floodData = [
-  {
-    id: 1,
-    location: "Brahmaputra River Basin",
-    riskLevel: "High",
-    waterLevel: "8.5m",
-    dangerMark: "7.2m",
-    rainfall: "185mm (24h)",
-    affectedArea: "~2,500 km²",
-    estimatedPeople: "150,000"
-  },
-  {
-    id: 2,
-    location: "Mahanadi Delta Region",
-    riskLevel: "Moderate",
-    waterLevel: "6.2m",
-    dangerMark: "6.8m",
-    rainfall: "95mm (24h)",
-    affectedArea: "~1,200 km²",
-    estimatedPeople: "45,000"
-  },
-  {
-    id: 3,
-    location: "Godavari Downstream",
-    riskLevel: "Low",
-    waterLevel: "4.8m",
-    dangerMark: "6.5m",
-    rainfall: "42mm (24h)",
-    affectedArea: "~400 km²",
-    estimatedPeople: "12,000"
-  }
-];
-
-// Flood zones for map
-const floodZones = [
-  { position: [26.8, 92.8], risk: "high", name: "Brahmaputra Basin" },
-  { position: [20.3, 85.8], risk: "moderate", name: "Mahanadi Delta" },
-  { position: [16.8, 81.5], risk: "low", name: "Godavari Downstream" }
-];
+import Map from '../components/map/Map';
+import Header from '../components/layout/Header';
 
 const DisasterPredictionDashboard = () => {
   const [activeTab, setActiveTab] = useState('cyclone');
+  const [cycloneData, setCycloneData] = useState(null);
+  const [floodData, setFloodData] = useState([]);
+  const [floodZones, setFloodZones] = useState([]);
 
+  // Utility functions
   const getRiskColor = (risk) => {
     switch(risk.toLowerCase()) {
       case 'high': return 'text-red-500 bg-red-500/10 border-red-500/30';
       case 'moderate': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30';
       case 'low': return 'text-green-500 bg-green-500/10 border-green-500/30';
       default: return 'text-gray-500 bg-gray-500/10 border-gray-500/30';
-    }
-  };
-
-  const getRiskDotColor = (risk) => {
-    switch(risk.toLowerCase()) {
-      case 'high': return 'bg-red-500';
-      case 'moderate': return 'bg-yellow-500';
-      case 'low': return 'bg-green-500';
-      default: return 'bg-gray-500';
     }
   };
 
@@ -86,16 +30,76 @@ const DisasterPredictionDashboard = () => {
     }
   };
 
+  // Fetch data from APIs
+  useEffect(() => {
+    const fetchCyclone = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/cyclone');
+        const data = res.data.data;
+
+        setCycloneData({
+          name: data.name,
+          speed: data.windSpeed,
+          direction: data.trajectory.length > 1 ? 
+                     `${data.trajectory[1].lat - data.trajectory[0].lat >= 0 ? 'North' : 'South'}-${data.trajectory[1].lng - data.trajectory[0].lng >= 0 ? 'East' : 'West'}` 
+                     : 'Unknown',
+          latitude: data.trajectory[0]?.lat + '°N',
+          longitude: data.trajectory[0]?.lng + '°E',
+          pressure: data.pressure || 'N/A',
+          lastUpdated: new Date(data.lastUpdated).toLocaleString(),
+          trajectory: data.trajectory
+        });
+      } catch (err) {
+        console.error('Error fetching cyclone data:', err);
+      }
+    };
+
+    const fetchFloods = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/floods');
+        const data = res.data.data;
+
+        setFloodData(
+          data.map((flood, idx) => ({
+            id: idx,
+            location: flood.region,
+            riskLevel: flood.risk,
+            waterLevel: flood.waterLevel,
+            dangerMark: flood.dangerMark,
+            rainfall: flood.forecastedRainfall,
+            affectedArea: '~' + (flood.affected / 60).toLocaleString() + ' km²', // optional approximation
+            estimatedPeople: flood.estimatedPeople
+          }))
+        );
+
+        setFloodZones(
+          data.flatMap(flood => flood.landCoordinates.map(coord => ({
+            position: [coord.lat, coord.lng],
+            risk: flood.risk.toLowerCase(),
+            name: flood.region
+          })))
+        );
+      } catch (err) {
+        console.error('Error fetching flood data:', err);
+      }
+    };
+
+    fetchCyclone();
+    fetchFloods();
+  }, []);
+
+  if (!cycloneData && activeTab === 'cyclone') {
+    return <div className="text-white text-center mt-20">Loading Cyclone Data...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 ">
       <Header />
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-8 mt-8 text-center">
           <h1 className="text-5xl font-bold text-white mb-3 tracking-tight">
             Disaster Prediction Center
           </h1>
-          {/* <p className="text-slate-300 text-lg">Real-time monitoring and forecasting system</p> */}
         </div>
 
         {/* Tab Navigation */}
@@ -133,7 +137,7 @@ const DisasterPredictionDashboard = () => {
         </div>
 
         {/* Cyclone Section */}
-        {activeTab === 'cyclone' && (
+        {activeTab === 'cyclone' && cycloneData && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Cyclone Data Panel */}
             <div className="lg:col-span-1 space-y-4">
@@ -144,11 +148,6 @@ const DisasterPredictionDashboard = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  {/* <div className={`px-4 py-3 rounded-lg border ${getRiskColor(cycloneData.intensity.split(' ')[0])}`}>
-                    <p className="text-xs uppercase tracking-wide opacity-70 mb-1">Intensity</p>
-                    <p className="text-lg font-semibold">{cycloneData.intensity}</p>
-                  </div> */}
-
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/30">
                       <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Speed</p>
@@ -192,7 +191,7 @@ const DisasterPredictionDashboard = () => {
               <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50 shadow-xl h-full">
                 <h3 className="text-xl font-semibold text-white mb-4">Trajectory Map</h3>
                 <div className="rounded-lg overflow-hidden h-[600px]">
-                    <Map/>
+                    <Map trajectory={cycloneData.trajectory}/>
                 </div>
               </div>
             </div>

@@ -10,7 +10,8 @@ require('dotenv').config({ path: './.env' });
 const authRoutes = require('./routes/authRoutes');
 const dataRoutes = require('./routes/dataRoutes');
 const alertRoutes = require('./routes/alertRoutes');
-
+const cycloneRoutes = require('./routes/cycloneRoutes');
+const floodRoutes = require('./routes/floodRoutes');
 // Import middleware
 const errorMiddleware = require('./middleware/errorMiddleware');
 
@@ -59,7 +60,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/alerts', alertRoutes);
-
+app.use("/api/cyclone", cycloneRoutes);
+app.use("/api/floods", floodRoutes);
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
