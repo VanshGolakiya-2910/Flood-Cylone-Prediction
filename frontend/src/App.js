@@ -9,7 +9,8 @@ import ForgotPassword from './components/auth/ForgotPassword';
 import ResetPassword from './components/auth/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import './index.css';
-
+import Map from './components/map/Map';
+import DisasterPredictionDashboard from './pages/DisasterPredictionDashboard';
 function App() {
   return (
     <AuthProvider>
@@ -57,6 +58,8 @@ function App() {
               } 
             />
             
+<Route path="/map" element={<Map />} />
+<Route path="/disaster-prediction" element={<DisasterPredictionDashboard />} />
             {/* Default redirect */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

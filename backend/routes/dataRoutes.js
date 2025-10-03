@@ -1,5 +1,5 @@
 const express = require('express');
-const countriesData = require('../data/countries');
+// const countriesData = require('../data/countries');
 
 const router = express.Router();
 

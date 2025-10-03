@@ -1,0 +1,194 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Turbulent atmospheric gradient -->
+    <radialGradient id="hazyBg" cx="45%" cy="55%">
+      <stop offset="0%" style="stop-color:#2a2a2a;stop-opacity:0.3" />
+      <stop offset="30%" style="stop-color:#5a5a5a;stop-opacity:0.6" />
+      <stop offset="60%" style="stop-color:#8a8a8a;stop-opacity:0.7" />
+      <stop offset="100%" style="stop-color:#b8b8b8;stop-opacity:0.4" />
+    </radialGradient>
+    
+    <!-- Eye center gradient - dark core -->
+    <radialGradient id="eyeCenter" cx="50%" cy="50%">   
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:0.9" />
+      <stop offset="50%" style="stop-color:#3a3a3a;stop-opacity:0.85" />
+      <stop offset="100%" style="stop-color:#5a5a5a;stop-opacity:0.8" />
+    </radialGradient>
+    
+    <!-- Spiral gradients with storm colors -->
+    <linearGradient id="spiralGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9a9a9a;stop-opacity:0.9" />
+      <stop offset="30%" style="stop-color:#7a7a7a;stop-opacity:0.85" />
+      <stop offset="60%" style="stop-color:#5a5a5a;stop-opacity:0.75" />
+      <stop offset="100%" style="stop-color:#3a3a3a;stop-opacity:0.5" />
+    </linearGradient>
+    
+    <linearGradient id="spiralGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#b5b5b5;stop-opacity:0.85" />
+      <stop offset="40%" style="stop-color:#8a8a8a;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#4a4a4a;stop-opacity:0.6" />
+    </linearGradient>
+    
+    <linearGradient id="spiralGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d0d0d0;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#a0a0a0;stop-opacity:0.75" />
+      <stop offset="100%" style="stop-color:#606060;stop-opacity:0.5" />
+    </linearGradient>
+    
+    <!-- Greenish tint for severe weather -->
+    <linearGradient id="stormGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#c8d4c8;stop-opacity:0.6" />
+      <stop offset="50%" style="stop-color:#98a898;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#687868;stop-opacity:0.3" />
+    </linearGradient>
+    
+    <filter id="softBlur">
+      <feGaussianBlur stdDeviation="1.5"/>
+    </filter>
+    
+    <filter id="strongBlur">
+      <feGaussianBlur stdDeviation="2.5"/>
+    </filter>
+    
+    <!-- Turbulence for uneven fog -->
+    <filter id="turbulence">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="2"/>
+      <feDisplacementMap in="SourceGraphic" scale="8"/>
+    </filter>
+  </defs>
+  
+  <!-- Turbulent atmospheric background -->
+  <ellipse cx="100" cy="100" rx="98" ry="95" fill="url(#hazyBg)" opacity="0.85" filter="url(#turbulence)"/>
+  
+  <!-- Uneven fog patches -->
+  <ellipse cx="85" cy="80" rx="45" ry="50" fill="#a8a8a8" opacity="0.4" filter="url(#strongBlur)"/>
+  <ellipse cx="120" cy="115" rx="50" ry="42" fill="#989898" opacity="0.35" filter="url(#strongBlur)"/>
+  <ellipse cx="95" cy="130" rx="38" ry="45" fill="#b8b8b8" opacity="0.3" filter="url(#strongBlur)"/>
+  
+  <!-- Greenish storm tint -->
+  <ellipse cx="110" cy="90" rx="60" ry="55" fill="url(#stormGreen)" opacity="0.5" filter="url(#softBlur)"/>
+  
+  <!-- Outer spiral layer - long curved bands -->
+  <g id="outerSpiral">
+    <animateTransform
+      attributeName="transform"
+      attributeType="XML"
+      type="rotate"
+      from="0 100 100"
+      to="-360 100 100"
+      dur="18s"
+      repeatCount="indefinite"/>
+    
+    <!-- Long curved spiral arm 1 -->
+    <path d="M 100 100 Q 110 85, 125 72 Q 145 55, 168 48 Q 185 43, 195 52 Q 202 60, 200 75 Q 198 88, 190 100 Q 182 112, 172 120" 
+          fill="none" stroke="url(#spiralGrad1)" stroke-width="32" 
+          stroke-linecap="round" opacity="0.75" filter="url(#softBlur)"/>
+    
+    <!-- Long curved spiral arm 2 -->
+    <path d="M 100 100 Q 85 110, 72 125 Q 55 145, 48 168 Q 43 185, 52 195 Q 60 202, 75 200 Q 88 198, 100 190 Q 112 182, 120 172" 
+          fill="none" stroke="url(#spiralGrad1)" stroke-width="32" 
+          stroke-linecap="round" opacity="0.75" filter="url(#softBlur)"/>
+    
+    <!-- Long curved spiral arm 3 -->
+    <path d="M 100 100 Q 90 85, 75 72 Q 55 55, 32 48 Q 15 43, 5 52 Q -2 60, 0 75 Q 2 88, 10 100 Q 18 112, 28 120" 
+          fill="none" stroke="url(#spiralGrad1)" stroke-width="32" 
+          stroke-linecap="round" opacity="0.75" filter="url(#softBlur)"/>
+    
+    <!-- Long curved spiral arm 4 -->
+    <path d="M 100 100 Q 115 90, 128 75 Q 145 55, 152 32 Q 157 15, 148 5 Q 140 -2, 125 0 Q 112 2, 100 10 Q 88 18, 80 28" 
+          fill="none" stroke="url(#spiralGrad1)" stroke-width="32" 
+          stroke-linecap="round" opacity="0.75" filter="url(#softBlur)"/>
+  </g>
+  
+  <!-- Uneven atmospheric disturbance layer -->
+  <ellipse cx="100" cy="95" rx="70" ry="75" fill="#888888" opacity="0.3" filter="url(#turbulence)"/>
+  
+  <!-- Middle spiral layer - tighter curves -->
+  <g id="midSpiral">
+    <animateTransform
+      attributeName="transform"
+      attributeType="XML"
+      type="rotate"
+      from="0 100 100"
+      to="-360 100 100"
+      dur="12s"
+      repeatCount="indefinite"/>
+    
+    <!-- Curved spiral arm 1 -->
+    <path d="M 100 100 Q 108 88, 118 80 Q 132 70, 148 68 Q 162 67, 172 76 Q 180 84, 178 98 Q 176 110, 168 120 Q 160 128, 150 132" 
+          fill="none" stroke="url(#spiralGrad2)" stroke-width="28" 
+          stroke-linecap="round" opacity="0.8" filter="url(#softBlur)"/>
+    
+    <!-- Curved spiral arm 2 -->
+    <path d="M 100 100 Q 88 108, 80 118 Q 70 132, 68 148 Q 67 162, 76 172 Q 84 180, 98 178 Q 110 176, 120 168 Q 128 160, 132 150" 
+          fill="none" stroke="url(#spiralGrad2)" stroke-width="28" 
+          stroke-linecap="round" opacity="0.8" filter="url(#softBlur)"/>
+    
+    <!-- Curved spiral arm 3 -->
+    <path d="M 100 100 Q 92 88, 82 80 Q 68 70, 52 68 Q 38 67, 28 76 Q 20 84, 22 98 Q 24 110, 32 120 Q 40 128, 50 132" 
+          fill="none" stroke="url(#spiralGrad2)" stroke-width="28" 
+          stroke-linecap="round" opacity="0.8" filter="url(#softBlur)"/>
+    
+    <!-- Curved spiral arm 4 -->
+    <path d="M 100 100 Q 112 92, 120 82 Q 130 68, 132 52 Q 133 38, 124 28 Q 116 20, 102 22 Q 90 24, 80 32 Q 72 40, 68 50" 
+          fill="none" stroke="url(#spiralGrad2)" stroke-width="28" 
+          stroke-linecap="round" opacity="0.8" filter="url(#softBlur)"/>
+  </g>
+  
+  <!-- More atmospheric disturbance -->
+  <ellipse cx="105" cy="100" rx="50" ry="55" fill="#787878" opacity="0.25" filter="url(#turbulence)"/>
+  
+  <!-- Inner spiral layer - tight rotation -->
+  <g id="innerSpiral">
+    <animateTransform
+      attributeName="transform"
+      attributeType="XML"
+      type="rotate"
+      from="0 100 100"
+      to="-360 100 100"
+      dur="7s"
+      repeatCount="indefinite"/>
+    
+    <!-- Tight curved spiral arm 1 -->
+    <path d="M 100 100 Q 105 92, 112 87 Q 122 81, 134 80 Q 144 80, 152 87 Q 158 94, 156 105 Q 154 114, 148 121 Q 142 127, 134 130" 
+          fill="none" stroke="url(#spiralGrad3)" stroke-width="24" 
+          stroke-linecap="round" opacity="0.85"/>
+    
+    <!-- Tight curved spiral arm 2 -->
+    <path d="M 100 100 Q 92 105, 87 112 Q 81 122, 80 134 Q 80 144, 87 152 Q 94 158, 105 156 Q 114 154, 121 148 Q 127 142, 130 134" 
+          fill="none" stroke="url(#spiralGrad3)" stroke-width="24" 
+          stroke-linecap="round" opacity="0.85"/>
+    
+    <!-- Tight curved spiral arm 3 -->
+    <path d="M 100 100 Q 95 92, 88 87 Q 78 81, 66 80 Q 56 80, 48 87 Q 42 94, 44 105 Q 46 114, 52 121 Q 58 127, 66 130" 
+          fill="none" stroke="url(#spiralGrad3)" stroke-width="24" 
+          stroke-linecap="round" opacity="0.85"/>
+    
+    <!-- Tight curved spiral arm 4 -->
+    <path d="M 100 100 Q 108 95, 113 88 Q 119 78, 120 66 Q 120 56, 113 48 Q 106 42, 95 44 Q 86 46, 79 52 Q 73 58, 70 66" 
+          fill="none" stroke="url(#spiralGrad3)" stroke-width="24" 
+          stroke-linecap="round" opacity="0.85"/>
+  </g>
+  
+  <!-- Disturbed center area -->
+  <ellipse cx="100" cy="100" rx="35" ry="38" fill="#686868" opacity="0.4" filter="url(#turbulence)"/>
+  
+  <!-- Eye wall - irregular ring -->
+  <path d="M 100 70 Q 115 72, 125 85 Q 130 100, 125 115 Q 115 128, 100 130 Q 85 128, 75 115 Q 70 100, 75 85 Q 85 72, 100 70" 
+        fill="#4a4a4a" opacity="0.7" filter="url(#softBlur)"/>
+  
+  <!-- The dark eye center -->
+  <ellipse cx="100" cy="100" rx="24" ry="22" fill="url(#eyeCenter)"/>
+  
+  <!-- Eye depth and texture -->
+  <ellipse cx="100" cy="100" rx="18" ry="17" fill="#2a2a2a" opacity="0.8"/>
+  <ellipse cx="98" cy="98" rx="12" ry="11" fill="#3a3a3a" opacity="0.7"/>
+  <ellipse cx="96" cy="96" rx="7" ry="8" fill="#4a4a4a" opacity="0.6"/>
+  
+  <!-- Subtle rotating glow -->
+  <ellipse cx="100" cy="100" rx="24" ry="22" fill="none" stroke="#686868" stroke-width="1" opacity="0.4">
+    <animate attributeName="rx" values="24;28;24" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="ry" values="22;26;22" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0.2;0.4" dur="4s" repeatCount="indefinite"/>
+  </ellipse>
+</svg>

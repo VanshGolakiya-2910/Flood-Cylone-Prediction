@@ -1,0 +1,162 @@
+ <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- White hazy background gradient -->
+    <radialGradient id="hazyBg" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.95" />
+      <stop offset="40%" style="stop-color:#f5f5f5;stop-opacity:0.8" />
+      <stop offset="70%" style="stop-color:#e8e8e8;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#d0d0d0;stop-opacity:0.2" />
+    </radialGradient>
+    
+    <!-- Eye center gradient -->
+    <radialGradient id="eyeCenter" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f8f8f8;stop-opacity:0.98" />
+      <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:0.95" />
+    </radialGradient>
+    
+    <!-- Spiral gradient - white to darker -->
+    <linearGradient id="spiralGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#d8d8d8;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#909090;stop-opacity:0.5" />
+    </linearGradient>
+    
+    <linearGradient id="spiralGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f5f5f5;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#c0c0c0;stop-opacity:0.85" />
+      <stop offset="100%" style="stop-color:#808080;stop-opacity:0.4" />
+    </linearGradient>
+    
+    <filter id="softBlur">
+      <feGaussianBlur stdDeviation="1"/>
+    </filter>
+  </defs>
+  
+  <!-- Hazy white background -->
+  <circle cx="100" cy="100" r="98" fill="url(#hazyBg)" opacity="0.9"/>
+  
+  <!-- Outer spiral layer - slowest rotation -->
+  <g id="outerSpiral">
+    <animateTransform
+      attributeName="transform"
+      attributeType="XML"
+      type="rotate"
+      from="0 100 100"
+      to="-360 100 100"
+      dur="15s"
+      repeatCount="indefinite"/>
+    
+    <!-- Spiral arm 1 - smooth curve -->
+    <path d="M 100 100 C 105 90, 115 80, 128 75 C 145 68, 165 68, 180 78 C 192 86, 198 100, 195 118 C 193 130, 188 138, 182 142" 
+          fill="none" stroke="url(#spiralGrad1)" stroke-width="26" 
+          stroke-linecap="round" opacity="0.85" filter="url(#softBlur)"/>
+    
+    <!-- Spiral arm 2 -->
+    <path d="M 100 100 C 90 105, 80 115, 75 128 C 68 145, 68 165, 78 180 C 86 192, 100 198, 118 195 C 130 193, 138 188, 142 182" 
+          fill="none" stroke="url(#spiralGrad1)" stroke-width="26" 
+          stroke-linecap="round" opacity="0.85" filter="url(#softBlur)"/>
+    
+    <!-- Spiral arm 3 -->
+    <path d="M 100 100 C 95 110, 85 120, 72 125 C 55 132, 35 132, 20 122 C 8 114, 2 100, 5 82 C 7 70, 12 62, 18 58" 
+          fill="none" stroke="url(#spiralGrad1)" stroke-width="26" 
+          stroke-linecap="round" opacity="0.85" filter="url(#softBlur)"/>
+    
+    <!-- Spiral arm 4 -->
+    <path d="M 100 100 C 110 95, 120 85, 125 72 C 132 55, 132 35, 122 20 C 114 8, 100 2, 82 5 C 70 7, 62 12, 58 18" 
+          fill="none" stroke="url(#spiralGrad1)" stroke-width="26" 
+          stroke-linecap="round" opacity="0.85" filter="url(#softBlur)"/>
+  </g>
+  
+  <!-- Hazy layer between spirals -->
+  <circle cx="100" cy="100" r="75" fill="#ffffff" opacity="0.35"/>
+  
+  <!-- Middle spiral layer - medium rotation -->
+  <g id="midSpiral">
+    <animateTransform
+      attributeName="transform"
+      attributeType="XML"
+      type="rotate"
+      from="0 100 100"
+      to="-360 100 100"
+      dur="10s"
+      repeatCount="indefinite"/>
+    
+    <!-- Spiral arm 1 -->
+    <path d="M 100 100 C 104 92, 112 85, 122 81 C 135 76, 150 76, 162 84 C 172 91, 177 102, 174 116 C 172 125, 168 132, 163 136" 
+          fill="none" stroke="url(#spiralGrad2)" stroke-width="22" 
+          stroke-linecap="round" opacity="0.9" filter="url(#softBlur)"/>
+    
+    <!-- Spiral arm 2 -->
+    <path d="M 100 100 C 92 104, 85 112, 81 122 C 76 135, 76 150, 84 162 C 91 172, 102 177, 116 174 C 125 172, 132 168, 136 163" 
+          fill="none" stroke="url(#spiralGrad2)" stroke-width="22" 
+          stroke-linecap="round" opacity="0.9" filter="url(#softBlur)"/>
+    
+    <!-- Spiral arm 3 -->
+    <path d="M 100 100 C 96 108, 88 115, 78 119 C 65 124, 50 124, 38 116 C 28 109, 23 98, 26 84 C 28 75, 32 68, 37 64" 
+          fill="none" stroke="url(#spiralGrad2)" stroke-width="22" 
+          stroke-linecap="round" opacity="0.9" filter="url(#softBlur)"/>
+    
+    <!-- Spiral arm 4 -->
+    <path d="M 100 100 C 108 96, 115 88, 119 78 C 124 65, 124 50, 116 38 C 109 28, 98 23, 84 26 C 75 28, 68 32, 64 37" 
+          fill="none" stroke="url(#spiralGrad2)" stroke-width="22" 
+          stroke-linecap="round" opacity="0.9" filter="url(#softBlur)"/>
+  </g>
+  
+  <!-- Hazy layer between spirals -->
+  <circle cx="100" cy="100" r="55" fill="#ffffff" opacity="0.4"/>
+  
+  <!-- Inner spiral layer - fastest rotation -->
+  <g id="innerSpiral">
+    <animateTransform
+      attributeName="transform"
+      attributeType="XML"
+      type="rotate"
+      from="0 100 100"
+      to="-360 100 100"
+      dur="6s"
+      repeatCount="indefinite"/>
+    
+    <!-- Spiral arm 1 -->
+    <path d="M 100 100 C 103 95, 108 90, 115 88 C 123 85, 133 86, 141 92 C 147 97, 150 104, 148 113 C 147 119, 144 124, 141 127" 
+          fill="none" stroke="#ffffff" stroke-width="18" 
+          stroke-linecap="round" opacity="0.95"/>
+    
+    <!-- Spiral arm 2 -->
+    <path d="M 100 100 C 95 103, 90 108, 88 115 C 85 123, 86 133, 92 141 C 97 147, 104 150, 113 148 C 119 147, 124 144, 127 141" 
+          fill="none" stroke="#ffffff" stroke-width="18" 
+          stroke-linecap="round" opacity="0.95"/>
+    
+    <!-- Spiral arm 3 -->
+    <path d="M 100 100 C 97 105, 92 110, 85 112 C 77 115, 67 114, 59 108 C 53 103, 50 96, 52 87 C 53 81, 56 76, 59 73" 
+          fill="none" stroke="#ffffff" stroke-width="18" 
+          stroke-linecap="round" opacity="0.95"/>
+    
+    <!-- Spiral arm 4 -->
+    <path d="M 100 100 C 105 97, 110 92, 112 85 C 115 77, 114 67, 108 59 C 103 53, 96 50, 87 52 C 81 53, 76 56, 73 59" 
+          fill="none" stroke="#ffffff" stroke-width="18" 
+          stroke-linecap="round" opacity="0.95"/>
+  </g>
+  
+  <!-- Hazy layer before eye -->
+  <circle cx="100" cy="100" r="38" fill="#ffffff" opacity="0.5"/>
+  
+  <!-- Eye wall - darker ring with gradient -->
+  <circle cx="100" cy="100" r="30" fill="#b0b0b0" opacity="0.7"/>
+  <circle cx="100" cy="100" r="28" fill="#989898" opacity="0.5"/>
+  
+  <!-- The calm eye center -->
+  <circle cx="100" cy="100" r="22" fill="url(#eyeCenter)"/>
+  
+  <!-- Eye highlights for depth -->
+  <circle cx="100" cy="100" r="17" fill="#ffffff" opacity="0.7"/>
+  <circle cx="100" cy="100" r="13" fill="#ffffff" opacity="0.8"/>
+  <ellipse cx="96" cy="96" rx="7" ry="9" fill="#ffffff" opacity="0.85"/>
+  <circle cx="94" cy="94" r="4" fill="#ffffff" opacity="0.95"/>
+  
+  <!-- Subtle pulsing glow -->
+  <circle cx="100" cy="100" r="22" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.3">
+    <animate attributeName="r" values="22;26;22" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="3s" repeatCount="indefinite"/>
+  </circle>
+</svg>
