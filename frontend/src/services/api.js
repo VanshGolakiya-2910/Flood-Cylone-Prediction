@@ -55,6 +55,8 @@ export const dataAPI = {
   getCountries: () => api.get('/data/countries'),
   getStates: (country) => api.get(`/data/states/${country}`),
   getCountriesStates: () => api.get('/data/countries-states'),
+  getDashboard: () => api.get('/data/dashboard'),
+  getAlerts: () => api.get('/data/alerts'),
 };
 
 // Health check

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import Map from '../components/map/Map'
+import Header from '../components/layout/Header'; 
 // Mock data for cyclone prediction
 const cycloneData = {
   name: "Cyclone",
@@ -86,10 +87,11 @@ const DisasterPredictionDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 ">
+      <Header />
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 text-center">
+        <div className="mb-8 mt-8 text-center">
           <h1 className="text-5xl font-bold text-white mb-3 tracking-tight">
             Disaster Prediction Center
           </h1>

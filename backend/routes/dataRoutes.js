@@ -1,5 +1,7 @@
 const express = require('express');
-// const countriesData = require('../data/countries');
+const countriesData = require('../data/countries');
+const dashboardData = require('../data/dashboard');
+const alertsData = require('../data/alerts');
 
 const router = express.Router();
 
@@ -55,6 +57,36 @@ router.get('/countries-states', (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch countries and states'
+    });
+  }
+});
+
+// Dashboard static data
+router.get('/dashboard', (req, res) => {
+  try {
+    res.status(200).json({
+      status: 'success',
+      data: dashboardData
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch dashboard data'
+    });
+  }
+});
+
+// Alerts static data
+router.get('/alerts', (req, res) => {
+  try {
+    res.status(200).json({
+      status: 'success',
+      data: alertsData
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch alerts data'
     });
   }
 });

@@ -26,7 +26,7 @@ Flood-Cylone-Prediction/
 
 ### Backend Environment Variables
 
-Create a `.env` file in the `backend/` directory with the following variables:
+Create a `config.env` file in the `backend/` directory with the following variables:
 
 ```env
 # Server Configuration
