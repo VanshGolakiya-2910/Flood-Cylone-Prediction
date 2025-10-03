@@ -8,6 +8,7 @@ import LoginForm from './components/auth/LoginForm';
 import ForgotPassword from './components/auth/ForgotPassword';
 import ResetPassword from './components/auth/ResetPassword';
 import Dashboard from './pages/Dashboard';
+import Alerts from './pages/Alerts';
 import './index.css';
 
 function App() {
@@ -53,6 +54,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/alerts" 
+              element={
+                <ProtectedRoute>
+                  <Alerts />
                 </ProtectedRoute>
               } 
             />

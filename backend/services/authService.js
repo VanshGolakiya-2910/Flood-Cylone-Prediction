@@ -2,6 +2,7 @@ const User = require('../models/User');
 const AppError = require('../utils/appError');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const emailService = require('./emailService');
 
 // Create JWT token
 const signToken = (id) => {
@@ -101,19 +102,26 @@ class AuthService {
     user.passwordResetExpires = passwordResetExpires;
     await user.save({ validateBeforeSave: false });
 
-    // In a real application, you would send an email here
-    // For now, we'll return the reset token (in production, this should be sent via email)
+    // Create reset URL
     const resetURL = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
 
-    // Simulate email sending (replace with actual email service)
-    console.log('Password reset email would be sent to:', email);
-    console.log('Reset URL:', resetURL);
-
-    return {
-      message: 'Password reset token sent to email',
-      resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined,
-      resetURL: process.env.NODE_ENV === 'development' ? resetURL : undefined
-    };
+    try {
+      // Send password reset email
+      await emailService.sendPasswordResetEmail(email, resetURL, user.name);
+      
+      return {
+        message: 'Password reset token sent to email',
+        resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined,
+        resetURL: process.env.NODE_ENV === 'development' ? resetURL : undefined
+      };
+    } catch (error) {
+      // If email fails, clear the reset token from database
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      
+      throw new AppError('There was an error sending the email. Try again later.', 500);
+    }
   }
 
   // Reset password
