@@ -1,23 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
+import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import CycloneSVG from '../../assets/SVG/cyclone.svg';
-const staticPath = [
-  [20.5, 85.5],
-  [21.0, 86.0],
-  [21.5, 86.5],
-  [22.0, 87.0],
-  [22.5, 87.5],
-];
 
 const lerp = (start, end, t) => start + (end - start) * t;
 
 const CycloneMap = () => {
-  const [currentPosition, setCurrentPosition] = useState(staticPath[0]);
+  const [trajectory, setTrajectory] = useState([]);
+  const [currentPosition, setCurrentPosition] = useState(null);
   const [showLegend, setShowLegend] = useState(false);
   const currentIndex = useRef(0);
   const t = useRef(0);
+
   // Memoize the icon once
   const cycloneIcon = useRef(L.icon({
     iconUrl: CycloneSVG,
@@ -25,32 +21,62 @@ const CycloneMap = () => {
     iconAnchor: [30, 30],
   }));
 
+  // Fetch cyclone trajectory from API
   useEffect(() => {
-    const step = 0.02;
-    const interval = setInterval(() => {
-      const start = staticPath[currentIndex.current];
-      const end = staticPath[currentIndex.current + 1];
-
-      if (!end) {
-        clearInterval(interval);
-        return;
+    const fetchCyclone = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/cyclone');
+        const data = res.data.data;
+        if (data.trajectory && data.trajectory.length > 0) {
+          const path = data.trajectory.map(point => [point.lat, point.lng]);
+          setTrajectory(path);
+          setCurrentPosition(path[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching cyclone data:', err);
       }
+    };
 
-      t.current += step;
-
-      if (t.current >= 1) {
-        t.current = 0;
-        currentIndex.current += 1;
-      }
-
-      const lat = lerp(start[0], end[0], t.current);
-      const lng = lerp(start[1], end[1], t.current);
-
-      setCurrentPosition([lat, lng]);
-    }, 50);
-
-    return () => clearInterval(interval);
+    fetchCyclone();
   }, []);
+
+  // Animate cyclone along trajectory
+  useEffect(() => {
+  if (!trajectory.length) return;
+
+  const speed = 0.0002; // Adjust this for faster/slower cyclone movement
+  let lastTime = performance.now();
+
+  const animate = (time) => {
+    const delta = time - lastTime;
+    lastTime = time;
+
+    const start = trajectory[currentIndex.current];
+    const end = trajectory[currentIndex.current + 1];
+
+    if (!end) return;
+
+    t.current += delta * speed;
+
+    if (t.current >= 1) {
+      t.current = 0;
+      currentIndex.current += 1;
+      if (currentIndex.current >= trajectory.length - 1) return; // stop at last point
+    }
+
+    const lat = lerp(start[0], end[0], t.current);
+    const lng = lerp(start[1], end[1], t.current);
+
+    setCurrentPosition([lat, lng]);
+    requestAnimationFrame(animate);
+  };
+
+  requestAnimationFrame(animate);
+}, [trajectory]);
+
+  if (!trajectory.length || !currentPosition) {
+    return <div className="text-white text-center mt-20">Loading cyclone data...</div>;
+  }
 
   return (
     <div className="w-full h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
@@ -76,7 +102,7 @@ const CycloneMap = () => {
         
         <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50">
           <MapContainer
-            center={staticPath[0]}
+            center={trajectory[0]}
             zoom={6}
             style={{ height: '600px', width: '100%' }}
             scrollWheelZoom={true}
@@ -86,151 +112,48 @@ const CycloneMap = () => {
               attribution="&copy; OpenStreetMap contributors"
             />
 
-            {/* Outer glow layer - widest */}
-            <Polyline 
-              positions={staticPath} 
-              color="#fbbf24" 
-              weight={16} 
-              opacity={0.15}
-            />
-            
-            {/* Middle glow layer */}
-            <Polyline 
-              positions={staticPath} 
-              color="#f97316" 
-              weight={10} 
-              opacity={0.3}
-            />
-            
-            {/* Inner glow layer */}
-            <Polyline 
-              positions={staticPath} 
-              color="#ef4444" 
-              weight={6} 
-              opacity={0.5}
-            />
-            
-            {/* Main trajectory line with animated dash */}
-            <Polyline 
-              positions={staticPath} 
-              color="#dc2626" 
-              weight={3} 
-              opacity={0.9}
-              dashArray="15,10"
-              className="animate-dash"
-            />
-            
-            {/* Bright core line */}
-            <Polyline 
-              positions={staticPath} 
-              color="#ffffff" 
-              weight={1.5} 
-              opacity={0.6}
-            />
+            {/* Outer glow layer */}
+            <Polyline positions={trajectory} color="#fbbf24" weight={16} opacity={0.15} />
+            <Polyline positions={trajectory} color="#f97316" weight={10} opacity={0.3} />
+            <Polyline positions={trajectory} color="#ef4444" weight={6} opacity={0.5} />
+            <Polyline positions={trajectory} color="#dc2626" weight={3} opacity={0.9} dashArray="15,10" className="animate-dash" />
+            <Polyline positions={trajectory} color="#ffffff" weight={1.5} opacity={0.6} />
 
             {/* SVG Cyclone eye */}
-           <Marker position={currentPosition} icon={cycloneIcon.current} />
+            <Marker position={currentPosition} icon={cycloneIcon.current} />
 
-
-            {/* Enhanced trail markers with gradient colors */}
-            {staticPath.map((pos, idx) => {
-              const isPast = idx < currentIndex.current || 
-                            (idx === currentIndex.current && t.current > 0.5);
+            {/* Trail markers */}
+            {trajectory.map((pos, idx) => {
+              const isPast = idx < currentIndex.current || (idx === currentIndex.current && t.current > 0.5);
               const isCurrent = idx === currentIndex.current;
-              const progress = idx / (staticPath.length - 1);
-              
+
               return (
                 <React.Fragment key={idx}>
-                  {/* Outer glow ring */}
-                  <CircleMarker
-                    center={pos}
-                    radius={isCurrent ? 18 : 12}
-                    fillColor={isPast ? "#dc2626" : "#fb923c"}
-                    color="transparent"
-                    weight={0}
-                    fillOpacity={0.15}
-                  />
-                  
-                  {/* Middle glow ring */}
-                  <CircleMarker
-                    center={pos}
-                    radius={isCurrent ? 12 : 9}
-                    fillColor={isPast ? "#ef4444" : "#fbbf24"}
-                    color="transparent"
-                    weight={0}
-                    fillOpacity={0.3}
-                  />
-                  
-                  {/* Main marker */}
-                  <CircleMarker
-                    center={pos}
-                    radius={isCurrent ? 9 : 6}
-                    fillColor={isPast ? "#dc2626" : "#fb923c"}
-                    color={isPast ? "#7f1d1d" : "#c2410c"}
-                    weight={2}
-                    fillOpacity={isPast ? 0.9 : 0.7}
-                    opacity={1}
-                  />
-                  
-                  {/* Inner bright core */}
-                  <CircleMarker
-                    center={pos}
-                    radius={isCurrent ? 5 : 3}
-                    fillColor="#ffffff"
-                    color="transparent"
-                    weight={0}
-                    fillOpacity={0.8}
-                  />
-
-                  {/* Pulsing effect for current position */}
+                  <CircleMarker center={pos} radius={isCurrent ? 18 : 12} fillColor={isPast ? "#dc2626" : "#fb923c"} color="transparent" weight={0} fillOpacity={0.15} />
+                  <CircleMarker center={pos} radius={isCurrent ? 12 : 9} fillColor={isPast ? "#ef4444" : "#fbbf24"} color="transparent" weight={0} fillOpacity={0.3} />
+                  <CircleMarker center={pos} radius={isCurrent ? 9 : 6} fillColor={isPast ? "#dc2626" : "#fb923c"} color={isPast ? "#7f1d1d" : "#c2410c"} weight={2} fillOpacity={isPast ? 0.9 : 0.7} opacity={1} />
+                  <CircleMarker center={pos} radius={isCurrent ? 5 : 3} fillColor="#ffffff" color="transparent" weight={0} fillOpacity={0.8} />
                   {isCurrent && (
                     <>
-                      <CircleMarker
-                        center={pos}
-                        radius={20}
-                        fillColor="#ef4444"
-                        color="transparent"
-                        weight={0}
-                        fillOpacity={0.2}
-                        className="animate-pulse"
-                      />
-                      <CircleMarker
-                        center={pos}
-                        radius={15}
-                        fillColor="#fbbf24"
-                        color="#f97316"
-                        weight={2}
-                        fillOpacity={0.15}
-                        opacity={0.6}
-                      />
+                      <CircleMarker center={pos} radius={20} fillColor="#ef4444" color="transparent" weight={0} fillOpacity={0.2} className="animate-pulse" />
+                      <CircleMarker center={pos} radius={15} fillColor="#fbbf24" color="#f97316" weight={2} fillOpacity={0.15} opacity={0.6} />
                     </>
                   )}
                 </React.Fragment>
               );
             })}
           </MapContainer>
-          
-          {/* Toggle button for legend */}
+
+          {/* Toggle legend button */}
           <button
             onClick={() => setShowLegend(!showLegend)}
             className="absolute bottom-6 left-6 bg-slate-900/90 backdrop-blur-sm rounded-lg p-3 border border-slate-700/50 shadow-xl hover:bg-slate-800/90 transition-all duration-200"
           >
-            <svg 
-              className="w-6 h-6 text-white" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
-              />
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </button>
-          
-          {/* Info overlay - toggleable */}
+
           {showLegend && (
             <div className="absolute bottom-6 left-20 bg-slate-900/95 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50 shadow-xl">
               <div className="flex items-center justify-between mb-3">
@@ -238,10 +161,7 @@ const CycloneMap = () => {
                   <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
                   <span className="text-white font-semibold">Cyclone Status: Active</span>
                 </div>
-                <button 
-                  onClick={() => setShowLegend(false)}
-                  className="text-slate-400 hover:text-white transition-colors ml-4"
-                >
+                <button onClick={() => setShowLegend(false)} className="text-slate-400 hover:text-white transition-colors ml-4">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
