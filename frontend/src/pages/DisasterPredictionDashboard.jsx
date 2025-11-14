@@ -10,6 +10,8 @@ const DisasterPredictionDashboard = () => {
   const [cycloneData, setCycloneData] = useState(null);
   const [floodData, setFloodData] = useState([]);
   const [floodZones, setFloodZones] = useState([]);
+  const [loadingCyclone, setLoadingCyclone] = useState(true);
+  const [loadingFlood, setLoadingFlood] = useState(true);
 
   // Utility functions
   const getRiskColor = (risk) => {
@@ -33,64 +35,70 @@ const DisasterPredictionDashboard = () => {
   // Fetch data from APIs
   useEffect(() => {
     const fetchCyclone = async () => {
+      setLoadingCyclone(true);
       try {
         const res = await axios.get('http://localhost:5000/api/cyclone');
         const data = res.data.data;
 
-        setCycloneData({
-          name: data.name,
-          speed: data.windSpeed,
-          direction: data.trajectory.length > 1 ? 
-                     `${data.trajectory[1].lat - data.trajectory[0].lat >= 0 ? 'North' : 'South'}-${data.trajectory[1].lng - data.trajectory[0].lng >= 0 ? 'East' : 'West'}` 
-                     : 'Unknown',
-          latitude: data.trajectory[0]?.lat + '°N',
-          longitude: data.trajectory[0]?.lng + '°E',
-          pressure: data.pressure || 'N/A',
-          lastUpdated: new Date(data.lastUpdated).toLocaleString(),
-          trajectory: data.trajectory
-        });
+        if (data) {
+          setCycloneData({
+            name: data.name,
+            speed: data.windSpeed,
+            direction: data.trajectory && data.trajectory.length > 1 ? 
+                       `${data.trajectory[1].lat - data.trajectory[0].lat >= 0 ? 'North' : 'South'}-${data.trajectory[1].lng - data.trajectory[0].lng >= 0 ? 'East' : 'West'}` 
+                       : 'Unknown',
+            latitude: data.trajectory && data.trajectory[0] ? data.trajectory[0].lat + '°N' : 'N/A',
+            longitude: data.trajectory && data.trajectory[0] ? data.trajectory[0].lng + '°E' : 'N/A',
+            pressure: data.pressure || 'N/A',
+            lastUpdated: data.updatedAt ? new Date(data.updatedAt).toLocaleString() : 'N/A',
+            trajectory: data.trajectory || []
+          });
+        }
       } catch (err) {
         console.error('Error fetching cyclone data:', err);
+      } finally {
+        setLoadingCyclone(false);
       }
     };
 
     const fetchFloods = async () => {
+      setLoadingFlood(true);
       try {
         const res = await axios.get('http://localhost:5000/api/floods');
         const data = res.data.data;
 
-        setFloodData(
-          data.map((flood, idx) => ({
-            id: idx,
-            location: flood.region,
-            riskLevel: flood.risk,
-            waterLevel: flood.waterLevel,
-            dangerMark: flood.dangerMark,
-            rainfall: flood.forecastedRainfall,
-            affectedArea: '~' + (flood.affected / 60).toLocaleString() + ' km²', // optional approximation
-            estimatedPeople: flood.estimatedPeople
-          }))
-        );
+        if (data && Array.isArray(data)) {
+          setFloodData(
+            data.map((flood, idx) => ({
+              id: idx,
+              location: flood.region,
+              riskLevel: flood.risk,
+              waterLevel: flood.waterLevel,
+              dangerMark: flood.dangerMark,
+              rainfall: flood.forecastedRainfall,
+              affectedArea: '~' + (flood.affected / 60).toLocaleString() + ' km²', // optional approximation
+              estimatedPeople: flood.estimatedPeople
+            }))
+          );
 
-        setFloodZones(
-          data.flatMap(flood => flood.landCoordinates.map(coord => ({
-            position: [coord.lat, coord.lng],
-            risk: flood.risk.toLowerCase(),
-            name: flood.region
-          })))
-        );
+          setFloodZones(
+            data.flatMap(flood => (flood.landCoordinates || []).map(coord => ({
+              position: [coord.lat, coord.lng],
+              risk: flood.risk.toLowerCase(),
+              name: flood.region
+            })))
+          );
+        }
       } catch (err) {
         console.error('Error fetching flood data:', err);
+      } finally {
+        setLoadingFlood(false);
       }
     };
 
     fetchCyclone();
     fetchFloods();
   }, []);
-
-  if (!cycloneData && activeTab === 'cyclone') {
-    return <div className="text-white text-center mt-20">Loading Cyclone Data...</div>;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 ">
@@ -137,7 +145,17 @@ const DisasterPredictionDashboard = () => {
         </div>
 
         {/* Cyclone Section */}
-        {activeTab === 'cyclone' && cycloneData && (
+        {activeTab === 'cyclone' && (
+          <>
+            {loadingCyclone ? (
+              <div className="flex items-center justify-center min-h-[600px]">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
+                  <p className="text-white text-lg font-semibold">Loading Cyclone Data...</p>
+                  <p className="text-slate-400 text-sm mt-2">Fetching real-time cyclone information</p>
+                </div>
+              </div>
+            ) : cycloneData ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Cyclone Data Panel */}
             <div className="lg:col-span-1 space-y-4">
@@ -196,10 +214,29 @@ const DisasterPredictionDashboard = () => {
               </div>
             </div>
           </div>
+            ) : (
+              <div className="flex items-center justify-center min-h-[600px]">
+                <div className="text-center">
+                  <p className="text-white text-lg font-semibold">No Cyclone Data Available</p>
+                  <p className="text-slate-400 text-sm mt-2">There is currently no active cyclone data</p>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Flood Section */}
         {activeTab === 'flood' && (
+          <>
+            {loadingFlood ? (
+              <div className="flex items-center justify-center min-h-[600px]">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                  <p className="text-white text-lg font-semibold">Loading Flood Data...</p>
+                  <p className="text-slate-400 text-sm mt-2">Fetching real-time flood information</p>
+                </div>
+              </div>
+            ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Flood Data Panel */}
             <div className="lg:col-span-1 space-y-4">
@@ -299,6 +336,8 @@ const DisasterPredictionDashboard = () => {
               </div>
             </div>
           </div>
+            )}
+          </>
         )}
       </div>
     </div>
