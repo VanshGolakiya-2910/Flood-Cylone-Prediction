@@ -53,7 +53,7 @@ const DisasterPredictionDashboard = () => {
         console.error('Error fetching cyclone data:', err);
       }
     };
-
+    console.log('Fetching flood data...',cycloneData);  
     const fetchFloods = async () => {
       try {
         const res = await axios.get('http://localhost:5000/api/floods');

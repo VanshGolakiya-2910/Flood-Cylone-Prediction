@@ -37,7 +37,7 @@ const SignupForm = () => {
   const onSubmit = async (data) => {
     const result = await registerUser(data);
     if (result.success) {
-      navigate('/dashboard');
+      navigate('/local');
     }
   };
 

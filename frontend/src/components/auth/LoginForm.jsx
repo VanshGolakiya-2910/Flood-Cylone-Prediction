@@ -20,7 +20,7 @@ const LoginForm = () => {
   const onSubmit = async (data) => {
     const result = await login(data);
     if (result.success) {
-      navigate('/dashboard');
+      navigate('/local');
     }
   };
 

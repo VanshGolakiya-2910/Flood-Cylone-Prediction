@@ -129,7 +129,7 @@ class AuthService {
     // Hash the reset token to compare with stored token
     const hashedToken = crypto
       .createHash('sha256')
-      .update(resetToken)
+      .update(resetToken) 
       .digest('hex');
 
     // Find user by reset token and check if token is expired

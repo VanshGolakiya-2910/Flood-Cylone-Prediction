@@ -43,7 +43,7 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link
+            {/* <Link
               to="/dashboard"
               className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
@@ -54,19 +54,19 @@ const Header = () => {
               className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
               Predictions
-            </Link>
+            </Link> */}
             <Link
               to="/alerts"
               className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
               Alerts
             </Link>
-            <Link
+            {/* <Link
               to="/about"
               className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
               About
-            </Link>
+            </Link> */}
             <Link
               to="/local"
               className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"

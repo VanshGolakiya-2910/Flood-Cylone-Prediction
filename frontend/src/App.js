@@ -83,8 +83,8 @@ function App() {
               }
             />
             {/* Default redirect */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Navigate to="/local" replace />} />
+            <Route path="*" element={<Navigate to="/local" replace />} />
           </Routes>
         </div>
       </Router>

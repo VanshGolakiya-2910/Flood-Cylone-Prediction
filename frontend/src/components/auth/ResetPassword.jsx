@@ -28,7 +28,7 @@ const ResetPassword = () => {
     if (result.success) {
       setPasswordReset(true);
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/local');
       }, 2000);
     }
   };
