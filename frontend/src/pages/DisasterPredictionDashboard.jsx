@@ -13,7 +13,6 @@ const DisasterPredictionDashboard = () => {
   const [loadingCyclone, setLoadingCyclone] = useState(true);
   const [loadingFlood, setLoadingFlood] = useState(true);
 
-  // Utility functions
   const getRiskColor = (risk) => {
     switch (risk?.toLowerCase()) {
       case 'high':
@@ -46,13 +45,11 @@ const DisasterPredictionDashboard = () => {
     }
   };
 
-  // Fetch data from APIs
   useEffect(() => {
     const fetchCyclone = async () => {
       setLoadingCyclone(true);
       try {
-        // Use ?latest=true to get only the most recent cyclone prediction
-        const res = await axios.get('http://localhost:5000/api/cyclone?latest=true');
+        const res = await axios.get(process.env.REACT_APP_API_URL + '/cyclone?latest=true');
         const data = res.data.data;
 
         if (data) {
@@ -79,7 +76,7 @@ const DisasterPredictionDashboard = () => {
     const fetchFloods = async () => {
       setLoadingFlood(true);
       try {
-        const res = await axios.get('http://localhost:5000/api/floods');
+        const res = await axios.get(process.env.REACT_APP_API_URL + '/floods');
         const data = res.data.data;
 
         if (data && Array.isArray(data)) {
@@ -121,7 +118,6 @@ const DisasterPredictionDashboard = () => {
     fetchCyclone();
     fetchFloods();
   }, []);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
