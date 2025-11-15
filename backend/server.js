@@ -22,6 +22,12 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
+
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('FRONTEND_URL (raw):', process.env.FRONTEND_URL);
+console.log('FRONTEND_URL (trimmed):', (process.env.FRONTEND_URL || '').trim().replace(/\/$/, ''));
+
+
 // CORS configuration
 app.use(
   cors({
