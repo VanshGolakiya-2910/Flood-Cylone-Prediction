@@ -20,7 +20,12 @@ import DisasterPredictionDashboard from "./pages/DisasterPredictionDashboard";
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         <div className="App">
           <Toaster
             position="top-right"

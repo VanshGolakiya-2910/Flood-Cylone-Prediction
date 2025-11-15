@@ -1,41 +1,34 @@
 // models/Cyclone.js
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
+
+const trajectoryPointSchema = new mongoose.Schema({
+  lat: { type: Number, required: true },
+  lng: { type: Number, required: true },
+  time: Date,
+  state: String
+}, { _id: false });
+
 
 const cycloneSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    region: { type: String, required: true },
-    country: { type: String, default: 'India' },
-    severity: { type: String, enum: ['Severe', 'Moderate', 'Low'], required: true },
-    message: { type: String, required: true },
-    issued: { type: String, default: 'Just now' },
-    windSpeed: String,
-    eta: String,
-    risk: String,
-    affected: { type: Number, default: 0 },
-    trajectory: [
-      {
-        lat: Number,
-        lng: Number,
-        time: String
-      }
-    ],
-    windGusts: [
-      {
-        lat: Number,
-        lng: Number,
-        speed: Number
-      }
-    ],
-    landfallCoordinates: {
-      lat: Number,
-      lng: Number
+    probability: { type: Number, required: true },
+    firstPoint: {
+      lat: { type: Number, required: true },
+      lng: { type: Number, required: true },
+      time: Date
     },
-    forecastedRainfall: String,
-    status: { type: String, enum: ['Tracking', 'Dissipated', 'Landfall'], default: 'Tracking' }
+    affectedStates: {
+      type: [String],
+      default: []
+    },
+        trajectory: {
+      type: [trajectoryPointSchema],
+      default: []
+    },
+
   },
   { timestamps: true }
 );
 
 const Cyclone = mongoose.model('Cyclone', cycloneSchema);
-export default Cyclone;
+module.exports = Cyclone;

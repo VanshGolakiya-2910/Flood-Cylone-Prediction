@@ -1,78 +1,109 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, CircleMarker } from 'react-leaflet';
-import L from 'leaflet';
-import axios from 'axios';
+import { MapContainer, TileLayer, Polyline, CircleMarker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import CycloneSVG from '../../assets/SVG/cyclone.svg';
 
 const lerp = (start, end, t) => start + (end - start) * t;
 
-const CycloneMap = () => {
-  const [trajectory, setTrajectory] = useState([]);
+/**
+ * Props:
+ *  - trajectory: array of points. each point can be {lat, lng} or [lat, lng]
+ *  - speed: animation speed multiplier (default 0.0002)
+ *  - centerAtFirst: boolean - whether to center the map on first point (default true)
+ */
+const CycloneMap = ({ trajectory: propsTrajectory = [], speed = 0.0002, centerAtFirst = true }) => {
+  const [trajectory, setTrajectory] = useState([]); // normalized: [[lat, lng], ...]
   const [currentPosition, setCurrentPosition] = useState(null);
   const [showLegend, setShowLegend] = useState(false);
+
   const currentIndex = useRef(0);
-  const t = useRef(0);
+  const t = useRef(0); // continuous progress accumulator (consumed when >=1)
+  const rafIdRef = useRef(null);
 
-  // Memoize the icon once
-  const cycloneIcon = useRef(L.icon({
-    iconUrl: CycloneSVG,
-    iconSize: [60, 60],
-    iconAnchor: [30, 30],
-  }));
-
-  // Fetch cyclone trajectory from API
+  // Normalize incoming propsTrajectory to internal [[lat, lng], ...] form
   useEffect(() => {
-    const fetchCyclone = async () => {
-      try {
-        const res = await axios.get('http://localhost:5000/api/cyclone');
-        const data = res.data.data;
-        if (data.trajectory && data.trajectory.length > 0) {
-          const path = data.trajectory.map(point => [point.lat, point.lng]);
-          setTrajectory(path);
-          setCurrentPosition(path[0]);
-        }
-      } catch (err) {
-        console.error('Error fetching cyclone data:', err);
-      }
-    };
-
-    fetchCyclone();
-  }, []);
-
-  // Animate cyclone along trajectory
-  useEffect(() => {
-  if (!trajectory.length) return;
-
-  const speed = 0.0002; // Adjust this for faster/slower cyclone movement
-  let lastTime = performance.now();
-
-  const animate = (time) => {
-    const delta = time - lastTime;
-    lastTime = time;
-
-    const start = trajectory[currentIndex.current];
-    const end = trajectory[currentIndex.current + 1];
-
-    if (!end) return;
-
-    t.current += delta * speed;
-
-    if (t.current >= 1) {
-      t.current = 0;
-      currentIndex.current += 1;
-      if (currentIndex.current >= trajectory.length - 1) return; // stop at last point
+    if (!propsTrajectory || !Array.isArray(propsTrajectory) || propsTrajectory.length === 0) {
+      setTrajectory([]);
+      setCurrentPosition(null);
+      return;
     }
 
-    const lat = lerp(start[0], end[0], t.current);
-    const lng = lerp(start[1], end[1], t.current);
+    const normalized = propsTrajectory
+      .map((p) => {
+        if (Array.isArray(p) && p.length >= 2) return [Number(p[0]), Number(p[1])];
+        if (p && typeof p === 'object' && p.lat != null && p.lng != null) return [Number(p.lat), Number(p.lng)];
+        if (p && (p.latitude != null || p.lat != null)) {
+          const lat = p.lat ?? p.latitude;
+          const lng = p.lng ?? p.longitude ?? p.lon ?? p.long;
+          return [Number(lat), Number(lng)];
+        }
+        return null;
+      })
+      .filter(Boolean);
 
-    setCurrentPosition([lat, lng]);
-    requestAnimationFrame(animate);
-  };
+    setTrajectory(normalized);
+    if (normalized.length > 0) {
+      setCurrentPosition(normalized[0]);
+      currentIndex.current = 0;
+      t.current = 0;
+    } else {
+      setCurrentPosition(null);
+    }
+  }, [propsTrajectory]);
 
-  requestAnimationFrame(animate);
-}, [trajectory]);
+  // Smooth animation loop (handles t overflowing and advances index in a loop)
+  useEffect(() => {
+    // cleanup previous RAF if any
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+
+    if (!trajectory || trajectory.length === 0) return;
+
+    let lastTime = performance.now();
+
+    const animate = (time) => {
+      const delta = time - lastTime;
+      lastTime = time;
+
+      // accumulate progress (delta * speed)
+      t.current += delta * speed;
+
+      // consume whole-segment units from t
+      while (t.current >= 1) {
+        t.current -= 1;
+        currentIndex.current += 1;
+        if (currentIndex.current >= trajectory.length - 1) {
+          // reached end — snap to final point and stop
+          setCurrentPosition(trajectory[trajectory.length - 1]);
+          rafIdRef.current = null;
+          return;
+        }
+      }
+
+      const start = trajectory[currentIndex.current];
+      const end = trajectory[currentIndex.current + 1];
+
+      if (!start || !end) {
+        setCurrentPosition(trajectory[trajectory.length - 1]);
+        rafIdRef.current = null;
+        return;
+      }
+
+      const lat = lerp(start[0], end[0], t.current);
+      const lng = lerp(start[1], end[1], t.current);
+      setCurrentPosition([lat, lng]);
+
+      rafIdRef.current = requestAnimationFrame(animate);
+    };
+
+    rafIdRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    };
+  }, [trajectory, speed]);
 
   if (!trajectory.length || !currentPosition) {
     return <div className="text-white text-center mt-20">Loading cyclone data...</div>;
@@ -82,66 +113,39 @@ const CycloneMap = () => {
     <div className="w-full h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
       <style>
         {`
-          @keyframes dash {
-            to {
-              stroke-dashoffset: -50;
-            }
-          }
-          .animate-dash {
-            animation: dash 2s linear infinite;
-          }
+          @keyframes dash { to { stroke-dashoffset: -50; } }
+          .animate-dash { animation: dash 2s linear infinite; }
         `}
       </style>
+
       <div className="max-w-7xl mx-auto">
         <div className="mb-6 text-center">
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-            Cyclone Trajectory Tracker
-          </h1>
+          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Cyclone Trajectory Tracker</h1>
           <p className="text-slate-300 text-lg">Real-time monitoring and path prediction</p>
         </div>
-        
+
         <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50">
           <MapContainer
-            center={trajectory[0]}
+            center={centerAtFirst ? trajectory[0] : currentPosition}
             zoom={6}
             style={{ height: '600px', width: '100%' }}
             scrollWheelZoom={true}
           >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
-            />
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
 
-            {/* Outer glow layer */}
+            {/* Trail glow / path */}
             <Polyline positions={trajectory} color="#fbbf24" weight={16} opacity={0.15} />
             <Polyline positions={trajectory} color="#f97316" weight={10} opacity={0.3} />
             <Polyline positions={trajectory} color="#ef4444" weight={6} opacity={0.5} />
             <Polyline positions={trajectory} color="#dc2626" weight={3} opacity={0.9} dashArray="15,10" className="animate-dash" />
             <Polyline positions={trajectory} color="#ffffff" weight={1.5} opacity={0.6} />
 
-            {/* SVG Cyclone eye */}
-            <Marker position={currentPosition} icon={cycloneIcon.current} />
-
-            {/* Trail markers */}
-            {trajectory.map((pos, idx) => {
-              const isPast = idx < currentIndex.current || (idx === currentIndex.current && t.current > 0.5);
-              const isCurrent = idx === currentIndex.current;
-
-              return (
-                <React.Fragment key={idx}>
-                  <CircleMarker center={pos} radius={isCurrent ? 18 : 12} fillColor={isPast ? "#dc2626" : "#fb923c"} color="transparent" weight={0} fillOpacity={0.15} />
-                  <CircleMarker center={pos} radius={isCurrent ? 12 : 9} fillColor={isPast ? "#ef4444" : "#fbbf24"} color="transparent" weight={0} fillOpacity={0.3} />
-                  <CircleMarker center={pos} radius={isCurrent ? 9 : 6} fillColor={isPast ? "#dc2626" : "#fb923c"} color={isPast ? "#7f1d1d" : "#c2410c"} weight={2} fillOpacity={isPast ? 0.9 : 0.7} opacity={1} />
-                  <CircleMarker center={pos} radius={isCurrent ? 5 : 3} fillColor="#ffffff" color="transparent" weight={0} fillOpacity={0.8} />
-                  {isCurrent && (
-                    <>
-                      <CircleMarker center={pos} radius={20} fillColor="#ef4444" color="transparent" weight={0} fillOpacity={0.2} className="animate-pulse" />
-                      <CircleMarker center={pos} radius={15} fillColor="#fbbf24" color="#f97316" weight={2} fillOpacity={0.15} opacity={0.6} />
-                    </>
-                  )}
-                </React.Fragment>
-              );
-            })}
+            {/* Current animated marker (CircleMarker) with layered glow */}
+            {/* Outer faint glow */}
+            <CircleMarker center={currentPosition} radius={28} fillColor="#ef4444" color="transparent" weight={0} fillOpacity={0.08} />
+            <CircleMarker center={currentPosition} radius={20} fillColor="#ef4444" color="transparent" weight={0} fillOpacity={0.12} />
+            {/* Core marker */}
+            <CircleMarker center={currentPosition} radius={10} fillColor="#ef4444" color="#dc2626" weight={2} fillOpacity={0.9} />
           </MapContainer>
 
           {/* Toggle legend button */}
@@ -158,7 +162,7 @@ const CycloneMap = () => {
             <div className="absolute bottom-6 left-20 bg-slate-900/95 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50 shadow-xl">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                  <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
                   <span className="text-white font-semibold">Cyclone Status: Active</span>
                 </div>
                 <button onClick={() => setShowLegend(false)} className="text-slate-400 hover:text-white transition-colors ml-4">
@@ -167,29 +171,23 @@ const CycloneMap = () => {
                   </svg>
                 </button>
               </div>
+
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <div className="w-4 h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 rounded blur-sm opacity-50"></div>
-                    <div className="absolute inset-0 w-4 h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 rounded"></div>
+                    <div className="w-4 h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 rounded blur-sm opacity-50" />
+                    <div className="absolute inset-0 w-4 h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 rounded" />
                   </div>
                   <span className="text-slate-300">Projected Path</span>
                 </div>
+
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <div className="w-4 h-4 rounded-full bg-red-600 blur-sm opacity-40"></div>
-                    <div className="absolute inset-0 w-4 h-4 rounded-full bg-red-600 border-2 border-red-900"></div>
-                    <div className="absolute inset-1 w-2 h-2 rounded-full bg-white opacity-70"></div>
+                    <div className="w-4 h-4 rounded-full bg-red-600 blur-sm opacity-40" />
+                    <div className="absolute inset-0 w-4 h-4 rounded-full bg-red-600 border-2 border-red-900" />
+                    <div className="absolute inset-1 w-2 h-2 rounded-full bg-white opacity-70" />
                   </div>
-                  <span className="text-slate-300">Traversed Points</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <div className="w-4 h-4 rounded-full bg-orange-400 blur-sm opacity-40"></div>
-                    <div className="absolute inset-0 w-4 h-4 rounded-full bg-orange-400 border-2 border-orange-600"></div>
-                    <div className="absolute inset-1 w-2 h-2 rounded-full bg-white opacity-70"></div>
-                  </div>
-                  <span className="text-slate-300">Upcoming Points</span>
+                  <span className="text-slate-300">Current Position</span>
                 </div>
               </div>
             </div>

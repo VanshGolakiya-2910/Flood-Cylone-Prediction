@@ -12,6 +12,8 @@ const dataRoutes = require('./routes/dataRoutes');
 const alertRoutes = require('./routes/alertRoutes');
 const cycloneRoutes = require('./routes/cycloneRoutes');
 const floodRoutes = require('./routes/floodRoutes');
+const predictedTracksRouter = require('./routes/predictedTracks');
+const debugRoutes = require('./routes/debugRoutes');
 // Import middleware
 const errorMiddleware = require('./middleware/errorMiddleware');
 
@@ -62,6 +64,9 @@ app.use('/api/data', dataRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use("/api/cyclone", cycloneRoutes);
 app.use("/api/floods", floodRoutes);
+app.use('/api/predicted-tracks', predictedTracksRouter);
+app.use('/api/debug', debugRoutes);
+
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({

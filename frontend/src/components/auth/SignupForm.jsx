@@ -13,7 +13,7 @@ const SignupForm = () => {
   const { register: registerUser, loading } = useAuth();
   const { countries, states, fetchStates, loading: countriesLoading } = useCountries();
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('India');
 
   const {
     register,
@@ -21,9 +21,28 @@ const SignupForm = () => {
     watch,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      country: 'India'
+    }
+  });
 
   const watchedCountry = watch('country');
+
+  // Load states for India when component mounts and countries are loaded
+  useEffect(() => {
+    if (countries.length > 0 && countries.includes('India')) {
+      // Ensure country is set to India
+      if (!watchedCountry || watchedCountry !== 'India') {
+        setValue('country', 'India');
+      }
+      // Fetch states for India if not already loaded and country is India
+      if ((watchedCountry === 'India' || !watchedCountry) && states.length === 0) {
+        fetchStates('India');
+        setSelectedCountry('India');
+      }
+    }
+  }, [countries, fetchStates, setValue, states.length, watchedCountry]);
 
   // Update states when country changes
   useEffect(() => {
