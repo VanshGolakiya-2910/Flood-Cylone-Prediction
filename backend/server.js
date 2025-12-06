@@ -22,21 +22,37 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
+import cors from 'cors';
 
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('FRONTEND_URL (raw):', process.env.FRONTEND_URL);
-console.log('FRONTEND_URL (trimmed):', (process.env.FRONTEND_URL || '').trim().replace(/\/$/, ''));
+const allowed = (process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean);
 
+const corsOptions = {
+  origin: function (origin, callback) {
+    // non-browser requests (e.g., curl/postman) may have undefined origin
+    if (!origin) return callback(null, true);
 
-// CORS configuration
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+    if (allowed.length === 0) {
+      // no FRONTEND_URL configured -> allow all for dev, but log
+      console.warn('No FRONTEND_URL set — allowing all origins for now (dev only).');
+      return callback(null, true);
+    }
+
+    if (allowed.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn('Blocked CORS origin:', origin, 'allowed list:', allowed);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  optionsSuccessStatus: 204 // some clients expect 204/200 for preflight
+};
+
+app.use(cors(corsOptions));
+// ensure preflight is handled
+app.options('*', cors(corsOptions));
 
 
 // Rate limiting
