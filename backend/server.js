@@ -22,8 +22,7 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-import cors from 'cors';
-
+// CORS configuration
 const allowed = (process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean);
 
 const corsOptions = {
