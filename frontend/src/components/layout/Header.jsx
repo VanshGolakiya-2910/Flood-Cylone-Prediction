@@ -98,14 +98,6 @@ const Header = () => {
                       <User className="h-4 w-4 mr-3" />
                       Profile
                     </Link>
-                    <Link
-                      to="/settings"
-                      className="flex items-center px-4 py-2 text-sm text-gray-200 hover:bg-secondary-700"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <Settings className="h-4 w-4 mr-3" />
-                      Settings
-                    </Link>
                     <button
                       onClick={handleLogout}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-200 hover:bg-secondary-700"

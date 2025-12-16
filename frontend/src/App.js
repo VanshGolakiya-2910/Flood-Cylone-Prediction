@@ -14,6 +14,7 @@ import ForgotPassword from "./components/auth/ForgotPassword";
 import ResetPassword from "./components/auth/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Alerts from "./pages/Alerts";
+import Profile from "./pages/Profile";
 import "./index.css";
 import Map from "./components/map/Map";
 import DisasterPredictionDashboard from "./pages/DisasterPredictionDashboard";
@@ -84,6 +85,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DisasterPredictionDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />
