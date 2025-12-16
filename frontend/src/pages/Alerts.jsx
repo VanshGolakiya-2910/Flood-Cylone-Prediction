@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { MoreHorizontal, Search, Bell, AlertTriangle, Waves, Wind, X, Plus, Calendar, Users, CheckCircle, XCircle } from 'lucide-react';
 import Header from '../components/layout/Header';
-import axios from 'axios';
+import api from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 
 const Pill = ({ children, color = 'bg-blue-500/20', text = 'text-blue-300' }) => (
   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${color} ${text}`}>{children}</span>
@@ -251,6 +252,7 @@ const AlertCard = ({ alert, type }) => {
 };
 
 const Alerts = () => {
+  const { user } = useAuth();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -258,6 +260,8 @@ const Alerts = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [countriesData, setCountriesData] = useState({});
   const [availableStates, setAvailableStates] = useState([]);
+  
+  const isAdmin = user?.role === 'admin';
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
@@ -268,7 +272,7 @@ const Alerts = () => {
   const fetchAlerts = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5000/api/alerts');
+      const res = await api.get('/alerts');
       if (res.data.status === 'success') {
         const alertsData = res.data.data;
         // Handle both array and object responses
@@ -298,7 +302,7 @@ const Alerts = () => {
   const handleCreateAlert = async (formData) => {
     try {
       setLoading(true);
-      const response = await axios.post('http://localhost:5000/api/alerts/area', {
+      const response = await api.post('/alerts/area', {
         country: formData.country,
         state: formData.state,
         title: formData.title || 'Area Alert',
@@ -396,14 +400,16 @@ const Alerts = () => {
                 placeholder="Search alerts..." 
               />
             </div>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 text-white text-sm font-medium hover:from-red-600 hover:to-orange-600 transition-all shadow-lg shadow-red-500/20 disabled:opacity-50"
-            >
-              <Plus className="w-4 h-4" />
-              Create Alert
-            </button>
+            {isAdmin && (
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 text-white text-sm font-medium hover:from-red-600 hover:to-orange-600 transition-all shadow-lg shadow-red-500/20 disabled:opacity-50"
+              >
+                <Plus className="w-4 h-4" />
+                Create Alert
+              </button>
+            )}
           </div>
         </div>
 
